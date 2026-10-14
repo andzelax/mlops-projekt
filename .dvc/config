@@ -2,3 +2,5 @@
     remote = lokalny
 ['remote "lokalny"']
     url = /tmp/dvc-store
+['remote "zapasowy"']
+    url = /tmp/dvc-backup
