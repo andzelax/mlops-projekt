@@ -43,3 +43,17 @@ dvc pull
 # 6. Weryfikacja poprawnosci odtworzenia danych i statusu
 ls -lh data/
 dvc status
+
+## Laboratorium 4: Pre-commit hook demonstration
+
+```text
+(mlops) an_ga@Laptop:~/mlops-projekt$ git commit -m "test: demonstracja pre-commit"
+[INFO] Installing environment for [https://github.com/astral-sh/ruff-pre-commit](https://github.com/astral-sh/ruff-pre-commit).
+[INFO] Once installed this environment will be reused.
+ruff.....................................................................Failed
+- hook id: ruff
+- files were modified by this hook
+
+Found 1 error (1 fixed, 0 remaining).
+
+ruff-format..............................................................Passed
