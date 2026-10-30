@@ -1,4 +1,3 @@
-import mlflow
 import optuna
 from optuna_integration.mlflow import MLflowCallback
 from sklearn.datasets import load_breast_cancer
@@ -12,6 +11,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.25, random_state=42, stratify=y
 )
 
+
 def objective(trial: optuna.Trial) -> float:
     params = {
         "n_estimators": trial.suggest_int("n_estimators", 50, 400),
@@ -22,6 +22,7 @@ def objective(trial: optuna.Trial) -> float:
     model = RandomForestClassifier(**params)
     scores = cross_val_score(model, X_train, y_train, cv=5, scoring="accuracy")
     return scores.mean()
+
 
 mlflow_callback = MLflowCallback(
     tracking_uri=TRACKING_URI,
