@@ -44,9 +44,50 @@ dvc pull
 ls -lh data/
 dvc status
 
-## Laboratorium 4: Pre-commit hook demonstration
+```
+## Laboratorium nr 2
 
-```text
+================================================================================
+Ćwiczenie samodzielne nr 2: Porównanie z modelem bazowym
+================================================================================
+
+1. Tabela wyników:
+
++----------------------------+-----------------------+-------------------------+
+| Model                      | Dokładność CV (5-fold)| Dokładność na testowym  |
++----------------------------+-----------------------+-------------------------+
+| Model bazowy (Baseline)    | 0.9538 (± 0.0235)     | 0.9561                  |
+| Model strojony (Optuna)    | 0.9582                | 0.9561                  |
++----------------------------+-----------------------+-------------------------+
+
+Najlepsza znaleziona konfiguracja hiperparametrów:
+- n_estimators: 366
+- max_depth: 15
+- min_samples_split: 10
+- min_samples_leaf: 3
+- criterion: 'gini'
+
+
+2. Komentarz i odpowiedzi na pytania:
+
+- Czy strojenie przyniosło poprawę?
+Na etapie 5-krotnej walidacji krzyżowej proces strojenia przyniósł niewielką poprawę średniej dokładności (wzrost z poziomu 0.9538 do 0.9582). Na wydzielonym zbiorze testowym uzyskana dokładność modelu strojonego była jednak identyczna z modelem bazowym i wyniosła 0.9561. Świadczy to o tym, że domyślna konfiguracja lasu losowego w bibliotece scikit-learn stanowi już bardzo mocny punkt odniesienia dla stosunkowo prostego i niewielkiego zbioru Breast Cancer Wisconsin, a optymalizacja nie pozwoliła na dalszy zauważalny zysk na zbiorze testowym.
+
+- Czy relacja między wynikiem walidacyjnym a testowym wskazuje na nadmierne dopasowanie doboru hiperparametrów do walidacji?
+Nie, uzyskane wyniki nie wykazują objawów nadmiernego dopasowania (overfittingu) doboru hiperparametrów do podziału walidacyjnego. Wynik osiągnięty na zbiorze testowym (0.9561) jest niemal identyczny z wynikiem walidacji krzyżowej (0.9582) i w pełni mieści się w granicach błędu wyznaczonego przez odchylenie standardowe walidacji modelu bazowego (0.0235). Model zachował stabilną zdolność generalizacji na nowych, niewidzianych danych.
+
+================================================================================
+Ćwiczenie samodzielne nr 3: Interpretacja wizualizacji
+================================================================================
+
+1. Historia optymalizacji (Optimization History Plot):
+Wykres przedstawia wartości funkcji celu uzyskane w kolejnych 50 próbach (niebieskie punkty) oraz krzywą najlepszego dotychczasowego wyniku (czerwona linia). Na wykresie widać, że optymalną wartość dokładności walidacji krzyżowej (0.9582) osiągnięto już w 11. próbie, po czym linia najlepszego wyniku uległa całkowitemu wypłaszczeniu aż do końca eksperymentu. Wniosek praktyczny jest taki, że budżet obliczeniowy rzędu 50 prób był w zupełności wystarczający dla tej przestrzeni, a dalsze zwiększanie liczby prób bez modyfikacji zakresów parametrów nie przyniosłoby już zauważalnej poprawy.
+
+2. Ważność hiperparametrów (Hyperparameter Importances Plot):
+Wykres ilustruje względny wpływ poszczególnych hiperparametrów na wariancję wartości funkcji celu, oszacowany przez bibliotekę Optuna. Dominujący wpływ na jakość klasyfikacji miał parametr n_estimators (około 59%), a w dalszej kolejności parametry kontrolujące podziały i złożoność drzew: min_samples_split (15%) oraz min_samples_leaf (13%), podczas gdy criterion miał wpływ marginalny (4%). W praktyce oznacza to, że w kolejnych etapach strojenia można pominąć poszukiwanie kryterium podziału (pozostawiając domyślne "gini"), a budżet obliczeniowy skoncentrować na doborze odpowiedniej liczby estymatorów oraz regularyzacji liści drzewa.
+
+## Laboratorium 4: Pre-commit hook demonstration
+text
 (mlops) an_ga@Laptop:~/mlops-projekt$ git commit -m "test: demonstracja pre-commit"
 [INFO] Installing environment for [https://github.com/astral-sh/ruff-pre-commit](https://github.com/astral-sh/ruff-pre-commit).
 [INFO] Once installed this environment will be reused.

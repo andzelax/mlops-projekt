@@ -6,3 +6,6 @@ mlruns/
 .env
 mlruns/
 mlartifacts/
+
+*.db
+confusion_matrix.png

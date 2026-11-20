@@ -25,6 +25,9 @@ tune: data
 train: data
 	$(PYTHON) -m src.train
 
+serve:
+	$(PYTHON) -m uvicorn src.api:app --host 127.0.0.1 --port 8000 --reload
+
 all: lint test train
 
 clean:

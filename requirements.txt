@@ -8,3 +8,7 @@ threadpoolctl==3.7.0
 ruff
 pytest
 pre-commit
+fastapi
+uvicorn
+fastapi
+uvicorn
