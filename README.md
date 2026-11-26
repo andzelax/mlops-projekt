@@ -98,3 +98,49 @@ ruff.....................................................................Failed
 Found 1 error (1 fixed, 0 remaining).
 
 ruff-format..............................................................Passed
+
+## Laboratorium 6
+## Rozwiązywanie problemów: sieć Docker w WSL2
+
+W środowisku WSL2 + Docker Desktop bezpośrednie użycie flagi --add-host=host.docker.internal:host-gateway może powodować problemy z trasowaniem ruchu między kontenerami, ponieważ nazwa host.docker.internal jest już zarządzana przez Docker Desktopa i wskazuje na hosta Windows. Dodatkowo serwer MLflow 3.x domyślnie odrzuca żądania z nieznanych nazw hostów błędem 403 Invalid Host header (wbudowana ochrona przed atakami DNS rebinding).
+
+Rozwiązanie
+
+Aby zapewnić stabilną komunikację między kontenerem API a serwerem MLflow w WSL2:
+
+Utwórz dedykowaną sieć Dockera:
+
+docker network create mlops-net
+
+
+Uruchom serwer MLflow w tej sieci, dopisując nazwę kontenera (mlflow-server:*) do parametru --allowed-hosts:
+
+docker run -d \
+  --name mlflow-server \
+  --network mlops-net \
+  -p 5000:5000 \
+  -v mlflow-data:/mlflow \
+  ghcr.io/mlflow/mlflow:v3.14.0 \
+  mlflow server \
+  --host 0.0.0.0 \
+  --port 5000 \
+  --backend-store-uri sqlite:////mlflow/mlflow.db \
+  --artifacts-destination /mlflow/artifacts \
+  --cors-allowed-origins "*" \
+  --allowed-hosts "localhost:*,127.0.0.1:*,host.docker.internal:*,mlflow-server:*"
+
+
+Uruchom kontener API w tej samej sieci (--network mlops-net), przekazując adres kontenera MLflow przez zmienną środowiskową:
+
+docker run -d \
+  --name projekt-api \
+  --network mlops-net \
+  -p 8000:8000 \
+  -e MLFLOW_URI=http://mlflow-server:5000 \
+  -e PYTHONUNBUFFERED=1 \
+  projekt-api:0.1
+
+
+  REPOSITORY    TAG       IMAGE ID       CREATED          SIZE
+projekt-api   0.2       860288509edb   44 seconds ago   1.25GB
+projekt-api   0.1       e9b52db04da8   19 minutes ago   1.67GB

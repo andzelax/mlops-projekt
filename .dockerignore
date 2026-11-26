@@ -1,0 +1,10 @@
+.git
+.dvc/cache
+data/
+mlruns/
+*.db
+tests/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
