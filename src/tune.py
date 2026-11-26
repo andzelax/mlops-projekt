@@ -1,19 +1,32 @@
+import os
+from pathlib import Path
+
 import optuna
+import yaml
 from optuna_integration.mlflow import MLflowCallback
 
 from src.data import load_data, split_data
 from src.evaluate import evaluate_model
 from src.train import train_model
 
-STORAGE = "sqlite:///optuna.db"
-STUDY_NAME = "klasyfikator-nowotworow"
-TRACKING_URI = "http://127.0.0.1:5000"
+SCIEZKA_KONFIGURACJI = Path(__file__).resolve().parent.parent / "config.yaml"
+with open(SCIEZKA_KONFIGURACJI, encoding="utf-8") as plik:
+    KONFIGURACJA = yaml.safe_load(plik)
+
+TRACKING_URI = os.getenv("MLFLOW_URI", KONFIGURACJA["mlflow"]["tracking_uri"])
+STORAGE = KONFIGURACJA["tuning"]["storage"]
+STUDY_NAME = KONFIGURACJA["tuning"]["study_name"]
+N_TRIALS = KONFIGURACJA["tuning"]["n_trials"]
+N_ESTIMATORS_MIN, N_ESTIMATORS_MAX = KONFIGURACJA["tuning"]["n_estimators_range"]
+MAX_DEPTH_MIN, MAX_DEPTH_MAX = KONFIGURACJA["tuning"]["max_depth_range"]
 
 
 def objective(trial, X_train, X_test, y_train, y_test):
     params = {
-        "n_estimators": trial.suggest_int("n_estimators", 50, 300),
-        "max_depth": trial.suggest_int("max_depth", 2, 16),
+        "n_estimators": trial.suggest_int(
+            "n_estimators", N_ESTIMATORS_MIN, N_ESTIMATORS_MAX
+        ),
+        "max_depth": trial.suggest_int("max_depth", MAX_DEPTH_MIN, MAX_DEPTH_MAX),
     }
     model = train_model(X_train, y_train, params)
     return evaluate_model(model, X_test, y_test)
@@ -38,7 +51,7 @@ def main():
 
     study.optimize(
         lambda trial: objective(trial, X_train, X_test, y_train, y_test),
-        n_trials=50,
+        n_trials=N_TRIALS,
         callbacks=[mlflow_callback],
     )
 

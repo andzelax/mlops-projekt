@@ -144,3 +144,12 @@ docker run -d \
   REPOSITORY    TAG       IMAGE ID       CREATED          SIZE
 projekt-api   0.2       860288509edb   44 seconds ago   1.25GB
 projekt-api   0.1       e9b52db04da8   19 minutes ago   1.67GB
+
+## Optymalizacja obrazu Docker (`multi-stage build`)
+
+| Wersja obrazu | Charakterystyka | Rozmiar |
+| :--- | :--- | :--- |
+| `projekt-api:0.1` | Jednoetapowy `Dockerfile` (pozostałości po `pip` i cache w warstwach) | `1.67 GB` |
+| `projekt-api:0.2` | Budowa wieloetapowa (`--no-cache-dir`, przeniesienie `/install`, `.dockerignore`, użytkownik `appuser`) | `1.25 GB` |
+
+Przejście na budowę wieloetapową oraz wykluczenie zbędnych plików w `.dockerignore` zmniejszyło rozmiar obrazu o **420 MB** (~25%), a uruchomienie kontenera na użytkowniku `appuser` ogranicza potencjalne skutki przejęcia procesu aplikacji.

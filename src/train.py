@@ -1,15 +1,26 @@
+import os
+from pathlib import Path
+
 import mlflow
 import optuna
+import yaml
 from sklearn.ensemble import RandomForestClassifier
 
 from src.data import load_data, split_data
 from src.evaluate import evaluate_model
 
-STORAGE = "sqlite:///optuna.db"
-STUDY_NAME = "klasyfikator-nowotworow"
-TRACKING_URI = "http://127.0.0.1:5000"
-NAZWA_MODELU = "klasyfikator-nowotworow"
-DOMYSLNE_PARAMETRY = {"n_estimators": 100, "max_depth": 5}
+SCIEZKA_KONFIGURACJI = Path(__file__).resolve().parent.parent / "config.yaml"
+with open(SCIEZKA_KONFIGURACJI, encoding="utf-8") as plik:
+    KONFIGURACJA = yaml.safe_load(plik)
+
+TRACKING_URI = os.getenv("MLFLOW_URI", KONFIGURACJA["mlflow"]["tracking_uri"])
+NAZWA_EKSPERYMENTU = KONFIGURACJA["mlflow"].get("experiment_name", "trening-finalny")
+NAZWA_MODELU = KONFIGURACJA["model"]["nazwa"]
+
+STORAGE = KONFIGURACJA["tuning"]["storage"]
+STUDY_NAME = KONFIGURACJA["tuning"]["study_name"]
+RANDOM_STATE = KONFIGURACJA["training"]["random_state"]
+DOMYSLNE_PARAMETRY = KONFIGURACJA["training"]["default_params"]
 
 
 def get_best_params():
@@ -24,7 +35,7 @@ def get_best_params():
 def train_model(X_train, y_train, params=None):
     if params is None:
         params = DOMYSLNE_PARAMETRY
-    model = RandomForestClassifier(random_state=42, **params)
+    model = RandomForestClassifier(random_state=RANDOM_STATE, **params)
     model.fit(X_train, y_train)
     return model
 
@@ -39,7 +50,7 @@ def main():
     print(f"Trafnosc modelu na zbiorze testowym: {accuracy:.4f}")
 
     mlflow.set_tracking_uri(TRACKING_URI)
-    mlflow.set_experiment("trening-finalny")
+    mlflow.set_experiment(NAZWA_EKSPERYMENTU)
 
     with mlflow.start_run():
         mlflow.log_params(params)
